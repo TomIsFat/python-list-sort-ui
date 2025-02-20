@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>DataFrame列排序生成器</title>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script> 
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+        }
+        .input-section {
+            margin-bottom: 20px;
+        }
+        #columnsInput {
+            width: 100%;
+            height: 100px;
+            margin-bottom: 10px;
+            font-family: monospace;
+        }
+        #sortable-container {
+            overflow-x: auto;
+            padding: 15px 0;
+        }
+        #columnsList {
+            display: flex;
+            gap: 10px;
+            padding: 10px;
+            min-height: 60px;
+            background: #f5f5f5;
+            border-radius: 4px;
+        }
+        .column-item {
+            background: #ffffff;
+            border: 1px solid #ddd;
+            padding: 8px 15px;
+            border-radius: 20px;
+            cursor: move;
+            white-space: nowrap;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+        .column-item:hover {
+            background: #f0f8ff;
+            transform: translateY(-2px);
+        }
+        button {
+            background: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 15px;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        .notification {
+            display: none;
+            color: #4CAF50;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="input-section">
+        <textarea id="columnsInput" placeholder="请粘贴列名列表，例如：['列1', '列2', ...]"></textarea>
+        <button onclick="parseInput()">解析列名</button>
+    </div>
+
+    <div id="sortable-container">
+        <div id="columnsList"></div>
+    </div>
+
+    <button onclick="copyToClipboard()">复制排序结果</button>
+    <div id="notification" class="notification">已复制到剪贴板！</div>
+
+    <script>
+        let currentColumns = [];
+
+        function parseInput() {
+            const input = document.getElementById('columnsInput').value; 
+            const regex = /'([^']+)'/g;
+            const matches = input.match(regex)  || [];
+            currentColumns = matches.map(m  => m.replace(/'/g,  ''));
+            
+            renderColumns();
+            initSortable();
+        }
+
+        function renderColumns() {
+            const container = document.getElementById('columnsList'); 
+            container.innerHTML  = currentColumns
+                .map(col => `<div class="column-item">${col}</div>`)
+                .join('');
+        }
+
+        function initSortable() {
+            new Sortable(document.getElementById('columnsList'),  {
+                animation: 150,
+                direction: 'horizontal',
+                onUpdate: () => {
+                    currentColumns = Array.from(document.querySelectorAll('.column-item')) 
+                        .map(item => item.textContent); 
+                }
+            });
+        }
+
+        function copyToClipboard() {
+            const output = `['${currentColumns.join("',  '")}']`;
+            
+            navigator.clipboard.writeText(output) 
+                .then(() => {
+                    const notification = document.getElementById('notification'); 
+                    notification.style.display  = 'block';
+                    setTimeout(() => {
+                        notification.style.display  = 'none';
+                    }, 2000);
+                })
+                .catch(err => {
+                    console.error(' 复制失败:', err);
+                });
+        }
+    </script>
+</body>
+</html>
